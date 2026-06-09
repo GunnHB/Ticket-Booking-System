@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+# 1. frontend service
+  frontend:
+    build: ./tbs_frontend
+    container_name: tbs-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./tbs_frontend:/usr/share/nginx/html
+    restart: always
+
+# 2. database service
+  db:
+    image: mysql:8.0
+    container_name: tbs-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: tbsdb
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+# 3. backend service
+  backend:
+    build: ./tbs_backend
+    container_name: tbs-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_PASSWORD=rootpassword
+      - DB_NAME=tbsdb
+      - REDIS_HOST=redis
+    volumes:
+      - ./tbs_backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - db
+      - redis
+    restart: always
+
+# 4. redis
+  redis:
+    image: redis:alpine
+    container_name: tbs-redis
+    ports:
+      - "6379:6379"
+    restart: always

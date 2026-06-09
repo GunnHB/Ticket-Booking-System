@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko"> 
+<head>
+	<meta charset="UTF-8">
+	<title>Ticket Booking System</title>
+	<style>
+		body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f4f4f9; }
+		.game-card {
+			background: white; border: 1px solid #ddd; padding: 15px;
+			margin: 10px 0; border-radius: 8px; box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+		}
+		h3 { margin-top: 0; color: #333; }
+		button { padding: 10px 15px; cursor:pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
+		button:hover { background-color: #0056b3; }
+	</style>
+</head>
+<body>
+	<h1>TICKET BOOKING SYSTEM</h1>
+	<button id="loadGamesBtn">LOAD GAME SCHEDULE</button>
+	<div id="gameList" style="margin-top: 20px;">
+		<p>Press the button to check the game schedule</p>
+	</div>
+
+	<script>
+		document.getElementById('loadGamesBtn').addEventListener('click', () => {
+			const gameListDiv = document.getElementById('gameList');
+			gameListDiv.innerHTML = "<p>importing data...</p>";
+
+			fetch('http://192.168.111.200:8000/games')
+				.then(response => response.json())
+				.then(result => {
+					if (result.status === 'success') {
+						gameListDiv.innerHTML = "";
+						const games = result.data;
+
+						games.forEach(game => {
+							const gameDate = new Date(game.game_date).toLocaleString('ko-KR');
+
+							const card = document.createElement('div');
+							card.className = 'game-card';
+							card.innerHTML = `
+								<h3>${game.home_team} vs ${game.away_team}</h3>
+								<p>date: ${gameDate}</p>
+								<p>remain seats: <b style="color:blue;">${game.available_seats}</b> / ${game.total_seats}</p>
+								<button onclick="alert('Preparing a booking system...(ID: ${game.id})')">Booking</button>
+								`;
+							gameListDiv.appendChild(card);
+						});
+					}
+					else
+					{
+						gameListDiv.innerHTML = `<p style="color:red;">Error: ${result.message}</p>`;
+					}
+				})
+				.catch(error => 
+					{
+						gameListDiv.innerHTML = `<p style="color:red;">communication failure: ${error}</p>`;
+					});
+		});
+	</script>
+</body>
+</html>
