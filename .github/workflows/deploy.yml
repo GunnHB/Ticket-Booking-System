@@ -2,7 +2,11 @@ name: Deply to Local VM (Self-Hosted)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+    paths_ignore:
+      - './infra/monitoring/**'
+      - 'README.md'
 
 jobs:
   deploy:
